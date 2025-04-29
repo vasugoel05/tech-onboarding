@@ -8,7 +8,7 @@ class Game
   def initialize(no_of_players)
     @players = []
     @final_round = false
-    @final_round_triggered_by = nil
+    # @final_round_triggered_by = nil
 
     no_of_players.times do |i|
       @players << Player.new(i)
@@ -22,19 +22,18 @@ class Game
       @players.each do |player|
         play_turn(player)
 
-        if player.score >= 3000 && !@final_round
+        if player.score >= 3000
           @final_round = true
-          @final_round_triggered_by = player
+          # @final_round_triggered_by = player
           puts "Player #{player.id} triggered the final round!\n\n"
           break
         end
       end
     end
 
-    # final round
-    puts "Final round started! All other players get one last turn!\n\n"
+    # Final round: All players get one more turn
+    puts "Final round started! All players get one last turn!\n\n"
     @players.each do |player|
-      next if player == @final_round_triggered_by
       play_turn(player)
     end
 

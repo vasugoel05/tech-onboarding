@@ -14,32 +14,38 @@ class Turn
 
   private
 
-  def take_roll()
-    roll = Roll.new(@no_of_dices)
-    puts roll.to_s + "\n"
+  def take_roll
+    loop do
+      roll = Roll.new(@no_of_dices)
+      puts roll.to_s + "\n"
 
-    if roll.score == 0
-      puts "No points scored! You lose all points for this turn.\n"
-      @score = 0
-      end_turn()
-    else
-      @score += roll.score
-      @no_of_dices = roll.all_scoring_dices? ? 5 : roll.non_scoring_dices.count
-      prompt_user()
+      if roll.score == 0
+        puts "No points scored! You lose all points for this turn.\n"
+        @score = 0
+        end_turn
+        break
+      else
+        @score += roll.score
+        @no_of_dices = roll.all_scoring_dices? ? 5 : roll.non_scoring_dices.count
+      end
+      break if !prompt_user
     end
   end
 
-  def prompt_user()
-    puts "Player #{@player.id} : Type 'roll' to roll again (#{@no_of_dices} dice) or 'end' to stop and keep your turn score."
-    user_input = gets.chomp.downcase
+  def prompt_user
+    loop do
+      puts "Player #{@player.id} : Type 'roll' to roll again (#{@no_of_dices} dice) or 'end' to stop and keep your turn score."
+      user_input = gets.chomp.downcase
 
-    if user_input == "roll"
-      take_roll()
-    elsif user_input == "end"
-      end_turn()
-    else
-      puts "Invalid input. Try again.\n"
-      prompt_user()
+      case user_input
+      when 'roll'
+        return true
+      when 'end'
+        end_turn
+        return false
+      else
+        puts "Invalid input. Try again.\n"
+      end
     end
   end
 

@@ -10,63 +10,60 @@
 class Roll
   attr_reader :no_of_dices, :outcome, :non_scoring_dices, :score
 
-  def initialize(no_of_dices, options = {})
+  def initialize(no_of_dices)
     @no_of_dices = no_of_dices
     @outcome = []
     @score = 0
-    simulate_roll(options)
-    calc_score()
+    @non_scoring_dices = []
+
+    simulate_roll
+    calculate_score
   end
 
-  def all_scoring_dices?()
+  def all_scoring_dices?
     non_scoring_dices.empty?
   end
 
-  def to_s()
-    "Rolled #{@no_of_dices} dice.\n" +
-    "Outcome: #{outcome.join(', ')}\n" +
-    "Roll score: #{score}\n" +
-    "Non-scoring dice left: #{non_scoring_dices.count}\n"
+  def to_s
+    <<~ROLL_OUTPUT
+      Rolled #{@no_of_dices} dice.
+      Outcome: #{outcome.join(', ')}
+      Roll score: #{score}
+      Non-scoring dice left: #{non_scoring_dices.count}
+    ROLL_OUTPUT
   end
 
   private
 
-  def simulate_roll(options)
-    unless options[:override_outcome]
-      no_of_dices.times { @outcome << throw_dice() }
-    else
-      @outcome = options[:override_outcome].clone
-    end
-    @non_scoring_dices = @outcome.clone
+  def simulate_roll
+    @outcome = Array.new(@no_of_dices) { throw_dice }
+    @non_scoring_dices = @outcome.dup
   end
 
   def throw_dice
-    1 + rand(6)
+    rand(1..6)
   end
 
-  def calc_score()
-    # Check for triplets first
-    [1, 6, 5, 4, 3, 2].each do |number|
-      if arr_has_three_of_a_kind?(@outcome, number)
-        @score += (number == 1) ? 1000 : (number * 100)
-        3.times { @non_scoring_dices.delete_at(@non_scoring_dices.index(number)) }
-      end
+  def calculate_score
+    process_triplets
+    process_single_scoring_dice(1, 100)
+    process_single_scoring_dice(5, 50)
+  end
+
+  def process_triplets
+    (1..6).to_a.reverse.each do |number|
+      next unless @outcome.count(number) >= 3
+
+      @score += number == 1 ? 1000 : number * 100
+      3.times { @non_scoring_dices.delete_at(@non_scoring_dices.index(number)) }
     end
-
-    # Then check for single 1s and 5s
-    update_score_for(@non_scoring_dices, 1, 100)
-    update_score_for(@non_scoring_dices, 5, 50)
   end
 
-  def arr_has_three_of_a_kind?(arr, number)
-    arr.count(number) >= 3
-  end
+  def process_single_scoring_dice(number, points)
+    count = @non_scoring_dices.count(number)
+    return if count.zero?
 
-  def update_score_for(arr, number, points)
-    number_count = arr.count(number)
-    if number_count > 0
-      @score += number_count * points
-      number_count.times { arr.delete_at(arr.index(number)) }
-    end
+    @score += count * points
+    count.times { @non_scoring_dices.delete_at(@non_scoring_dices.index(number)) }
   end
 end
